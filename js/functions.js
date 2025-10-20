@@ -1,30 +1,15 @@
-function checkStringLength(string, maxLength) {
-  return string.length <= maxLength;
-}
-checkStringLength('проверяемая строка', 25);
+const isMeetingInWorkHours = (workStart, workEnd, meetingStart, meetingDuration) => {
+  const timeToMinutes = (time) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
 
-function isPalindrome(string) {
-  const normalizedString = string.replaceAll(' ', '').toLowerCase();
-  let reversedString = '';
-  for (let i = normalizedString.length - 1; i >= 0; i--) {
-    reversedString += normalizedString[i];
-  }
-  return normalizedString === reversedString;
-}
-isPalindrome('Довод');
+  const workStartMinutes = timeToMinutes(workStart);
+  const workEndMinutes = timeToMinutes(workEnd);
+  const meetingStartMinutes = timeToMinutes(meetingStart);
+  const meetingEndMinutes = meetingStartMinutes + meetingDuration;
 
-function extractNumber(input) {
-  const string = input.toString();
-  let result = '';
-  for (let i = 0; i < string.length; i++) {
-    const char = string[i];
-    if (!isNaN(parseInt(char, 10))) {
-      result += char;
-    }
-  }
-  if (result === '') {
-    return NaN;
-  }
-  return parseInt(result, 10);
-}
-extractNumber('2025 год');
+  return meetingStartMinutes >= workStartMinutes && meetingEndMinutes <= workEndMinutes;
+};
+
+isMeetingInWorkHours();
