@@ -1,6 +1,7 @@
 import { showBigPicture } from './big-photo.js';
 
 const picturesContainer = document.querySelector('.pictures');
+
 const pictureTemplate = document
   .querySelector('#picture')
   .content
@@ -18,7 +19,6 @@ const renderPhoto = (photo) => {
   element.querySelector('.picture__likes').textContent = likes;
   element.querySelector('.picture__comments').textContent = comments.length;
 
-  // Открытие полноразмерного фото
   element.addEventListener('click', (evt) => {
     evt.preventDefault();
     showBigPicture(photo);
