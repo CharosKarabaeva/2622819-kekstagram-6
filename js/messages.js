@@ -1,39 +1,54 @@
-const showTemplateMessage = (templateId, buttonClass) => {
-  const template = document.querySelector(templateId);
-  const messageContent = template.content.querySelector('section').cloneNode(true);
-  document.body.append(messageContent);
+const showMessage = (templateId) => {
+  const template = document.querySelector(`#${templateId}`);
+  if (!template) {
+    return;
+  }
 
-  const button = messageContent.querySelector(buttonClass);
+  const fragment = template.content.cloneNode(true);
+  const messageElement = fragment.querySelector('.success') || fragment.querySelector('.error');
 
-  const closeMessage = () => {
-    messageContent.remove();
-    document.removeEventListener('keydown', onEsc);
-    document.removeEventListener('click', onOutsideClick);
-  };
+  if (messageElement) {
+    messageElement.style.zIndex = '10000';
+  }
+
+  document.body.appendChild(fragment);
+
+  const node = messageElement;
 
   function onEsc(evt) {
     if (evt.key === 'Escape') {
-      closeMessage();
+      evt.stopPropagation();
+      removeMessage();
     }
   }
 
-  function onOutsideClick(evt) {
-    if (!evt.target.closest('section')) {
-      closeMessage();
+  function removeMessage() {
+    if (node && node.parentNode) {
+      node.parentNode.removeChild(node);
     }
+    document.removeEventListener('keydown', onEsc);
   }
 
-  button.addEventListener('click', closeMessage);
   document.addEventListener('keydown', onEsc);
-  document.addEventListener('click', onOutsideClick);
+
+  if (node) {
+    node.addEventListener('click', (evt) => {
+      const target = evt.target;
+      const button = target.closest('button');
+
+      if (button && (button.classList.contains('success__button') || button.classList.contains('error__button'))) {
+        removeMessage();
+        return;
+      }
+
+      if (target === node) {
+        removeMessage();
+      }
+    });
+  }
 };
 
-const showSuccessMessage = () => {
-  showTemplateMessage('#success', '.success__button');
-};
-
-const showErrorMessage = () => {
-  showTemplateMessage('#error', '.error__button');
-};
+const showSuccessMessage = () => showMessage('success');
+const showErrorMessage = () => showMessage('error');
 
 export { showSuccessMessage, showErrorMessage };
