@@ -3,7 +3,6 @@ import { isEscapeKey } from './utils.js';
 const bigPicture = document.querySelector('.big-picture');
 const socialComments = bigPicture.querySelector('.social__comments');
 const commentCountBlock = bigPicture.querySelector('.social__comment-count');
-const totalCommentsSpan = commentCountBlock.querySelector('.comments-count');
 const commentLoaderButton = bigPicture.querySelector('.comments-loader');
 const hidePictureButton = document.querySelector('.big-picture__cancel');
 
@@ -23,9 +22,18 @@ const clearComments = () => {
 };
 
 const updateCommentCounter = () => {
-  // обновляем "X из Y комментариев"
-  commentCountBlock.firstChild.textContent = `${shownComments} из `;
-  totalCommentsSpan.textContent = comments.length;
+  const shownCountEl = bigPicture.querySelector('.social__comment-shown-count');
+  const totalCountEl = bigPicture.querySelector('.social__comment-total-count');
+
+  if (!shownCountEl) {
+    const counterHtml = `<span class="social__comment-shown-count">${shownComments}</span> из <span class="social__comment-total-count">${comments.length}</span> комментариев`;
+    commentCountBlock.innerHTML = counterHtml;
+  } else {
+    shownCountEl.textContent = shownComments;
+    totalCountEl.textContent = comments.length;
+  }
+
+  commentLoaderButton.classList.toggle('hidden', shownComments >= comments.length);
 };
 
 const renderNextComments = () => {
@@ -53,10 +61,6 @@ const renderNextComments = () => {
 
   shownComments += nextComments.length;
   updateCommentCounter();
-
-  if (shownComments >= comments.length) {
-    commentLoaderButton.classList.add('hidden');
-  }
 };
 
 function hideBigPicture() {
@@ -66,7 +70,6 @@ function hideBigPicture() {
 }
 
 hidePictureButton.addEventListener('click', hideBigPicture);
-
 commentLoaderButton.addEventListener('click', renderNextComments);
 
 const showBigPicture = (picture) => {
@@ -79,12 +82,8 @@ const showBigPicture = (picture) => {
   img.alt = description;
 
   bigPicture.querySelector('.likes-count').textContent = likes;
-
-  totalCommentsSpan.textContent = comments.length;
-
   bigPicture.querySelector('.social__caption').textContent = description;
 
-  // показать кнопки
   commentCountBlock.classList.remove('hidden');
   commentLoaderButton.classList.remove('hidden');
 
@@ -93,7 +92,6 @@ const showBigPicture = (picture) => {
 
   document.body.classList.add('modal-open');
   bigPicture.classList.remove('hidden');
-
   document.addEventListener('keydown', onDocumentKeydown);
 };
 
