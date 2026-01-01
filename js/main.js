@@ -2,6 +2,8 @@ import { loadPhotos } from './api.js';
 import { initFilters } from './filters.js';
 import './form.js';
 
+const ERROR_DISPLAY_TIMEOUT = 5000;
+
 const showDataError = () => {
   const template = document.querySelector('#data-error');
 
@@ -15,7 +17,7 @@ const showDataError = () => {
       if (messageElement && messageElement.parentNode) {
         messageElement.parentNode.removeChild(messageElement);
       }
-    }, 5000);
+    }, ERROR_DISPLAY_TIMEOUT);
 
     return;
   }
@@ -40,7 +42,7 @@ const showDataError = () => {
 
   setTimeout(() => {
     error.remove();
-  }, 5000);
+  }, ERROR_DISPLAY_TIMEOUT);
 };
 
 window.addEventListener('load', () => {

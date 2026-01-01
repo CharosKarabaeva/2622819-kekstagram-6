@@ -1,10 +1,12 @@
 import { renderPictures } from './pictures.js';
 
+const RERENDER_DELAY = 500;
+const RANDOM_PHOTOS_COUNT = 10;
+
 const filtersContainer = document.querySelector('.img-filters');
 const filterForm = filtersContainer.querySelector('.img-filters__form');
 const filterButtons = filtersContainer.querySelectorAll('.img-filters__button');
 
-const RERENDER_DELAY = 500;
 let currentFilter = 'filter-default';
 let photos = [];
 
@@ -20,7 +22,7 @@ const clearPictures = () => {
 const getRandomPhotos = () => {
   const copiedPhotos = [...photos];
   const randomPhotos = [];
-  while (randomPhotos.length < 10 && copiedPhotos.length > 0) {
+  while (randomPhotos.length < RANDOM_PHOTOS_COUNT  && copiedPhotos.length > 0) {
     const randomIndex = Math.floor(Math.random() * copiedPhotos.length);
     randomPhotos.push(copiedPhotos[randomIndex]);
     copiedPhotos.splice(randomIndex, 1);
@@ -47,7 +49,7 @@ const renderFilteredPhotos = () => {
   renderPictures(filteredPhotos);
 };
 
-const debounce = (callback, timeoutDelay = 500) => {
+const debounce = (callback, timeoutDelay = RERENDER_DELAY) => {
   let timeoutId;
   return (...rest) => {
     clearTimeout(timeoutId);

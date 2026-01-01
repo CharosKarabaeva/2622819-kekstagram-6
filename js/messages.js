@@ -1,3 +1,4 @@
+import { isEscapeKey } from './utils.js';
 const showMessage = (templateId) => {
   const template = document.querySelector(`#${templateId}`);
   if (!template) {
@@ -15,36 +16,37 @@ const showMessage = (templateId) => {
 
   const node = messageElement;
 
-  function onEsc(evt) {
-    if (evt.key === 'Escape') {
+  function onDocumentEscKeydown(evt) {
+    if (isEscapeKey(evt)) {
       evt.stopPropagation();
-      removeMessage();
+      onCloseMessageButtonClick();
     }
   }
 
-  function removeMessage() {
+  function onCloseMessageButtonClick() {
     if (node && node.parentNode) {
       node.parentNode.removeChild(node);
     }
-    document.removeEventListener('keydown', onEsc);
+    document.removeEventListener('keydown', onDocumentEscKeydown);
   }
+  const onMessageClick = (evt) => {
+    const target = evt.target;
+    const button = target.closest('button');
 
-  document.addEventListener('keydown', onEsc);
+    if (button && (button.classList.contains('success__button') || button.classList.contains('error__button'))) {
+      onCloseMessageButtonClick();
+      return;
+    }
+
+    if (target === node) {
+      onCloseMessageButtonClick();
+    }
+  };
+
+  document.addEventListener('keydown', onDocumentEscKeydown);
 
   if (node) {
-    node.addEventListener('click', (evt) => {
-      const target = evt.target;
-      const button = target.closest('button');
-
-      if (button && (button.classList.contains('success__button') || button.classList.contains('error__button'))) {
-        removeMessage();
-        return;
-      }
-
-      if (target === node) {
-        removeMessage();
-      }
-    });
+    node.addEventListener('click', onMessageClick);
   }
 };
 

@@ -1,5 +1,7 @@
 import { isEscapeKey } from './utils.js';
 
+const COMMENTS_PER_PAGE = 5;
+
 const bigPicture = document.querySelector('.big-picture');
 const socialComments = bigPicture.querySelector('.social__comments');
 const commentCountBlock = bigPicture.querySelector('.social__comment-count');
@@ -8,12 +10,11 @@ const hidePictureButton = document.querySelector('.big-picture__cancel');
 
 let comments = [];
 let shownComments = 0;
-const COMMENTS_PER_PAGE = 5;
 
 const onDocumentKeydown = (evt) => {
   if (isEscapeKey(evt)) {
     evt.preventDefault();
-    hideBigPicture();
+    onHidePictureButtonClick();
   }
 };
 
@@ -36,7 +37,7 @@ const updateCommentCounter = () => {
   commentLoaderButton.classList.toggle('hidden', shownComments >= comments.length);
 };
 
-const renderNextComments = () => {
+const onCommentLoaderButtonClick = () => {
   const nextComments = comments.slice(shownComments, shownComments + COMMENTS_PER_PAGE);
 
   nextComments.forEach((comment) => {
@@ -63,14 +64,14 @@ const renderNextComments = () => {
   updateCommentCounter();
 };
 
-function hideBigPicture() {
+function onHidePictureButtonClick() {
   bigPicture.classList.add('hidden');
   document.body.classList.remove('modal-open');
   document.removeEventListener('keydown', onDocumentKeydown);
 }
 
-hidePictureButton.addEventListener('click', hideBigPicture);
-commentLoaderButton.addEventListener('click', renderNextComments);
+hidePictureButton.addEventListener('click', onHidePictureButtonClick);
+commentLoaderButton.addEventListener('click', onCommentLoaderButtonClick );
 
 const showBigPicture = (picture) => {
   const { url, description, likes } = picture;
@@ -88,7 +89,7 @@ const showBigPicture = (picture) => {
   commentLoaderButton.classList.remove('hidden');
 
   clearComments();
-  renderNextComments();
+  onCommentLoaderButtonClick();
 
   document.body.classList.add('modal-open');
   bigPicture.classList.remove('hidden');

@@ -1,24 +1,67 @@
 import './vendor/pristine/pristine.min.js';
 import './vendor/nouislider/nouislider.js';
+import { isEscapeKey } from './utils.js';
 import { sendData } from './api.js';
 import { showSuccessMessage, showErrorMessage } from './messages.js';
 
+const MIN_SCALE = 25;
+const MAX_SCALE = 100;
+const SCALE_STEP = 25;
+const MAX_COMMENT_LENGTH = 140;
+
+const EFFECTS = {
+  chrome: {
+    min: 0,
+    max: 1,
+    step: 0.1,
+    filter: (v) => `grayscale(${v})`
+  },
+  sepia: {
+    min: 0,
+    max: 1,
+    step: 0.1,
+    filter: (v) => `sepia(${v})`
+  },
+  marvin: {
+    min: 0,
+    max: 100,
+    step: 1,
+    filter: (v) => `invert(${v}%)`
+  },
+  phobos: {
+    min: 0,
+    max: 3,
+    step: 0.1,
+    filter: (v) => `blur(${v}px)`
+  },
+  heat: {
+    min: 1,
+    max: 3,
+    step: 0.1,
+    filter: (v) => `brightness(${v})`
+  }
+};
+
+const MAX_HASHTAGS = 5;
+const HASHTAG_PATTERN = /^#[a-zа-яё0-9]{1,19}$/i;
+
 const body = document.body;
-const uploadInput = document.querySelector('#upload-file');
-const overlay = document.querySelector('.img-upload__overlay');
-const closeButton = document.querySelector('#upload-cancel');
-
-const scaleSmaller = document.querySelector('.scale__control--smaller');
-const scaleBigger = document.querySelector('.scale__control--bigger');
-const scaleValue = document.querySelector('.scale__control--value');
-
-const previewImg = document.querySelector('.img-upload__preview img');
-const effectsList = document.querySelector('.effects__list');
-const sliderContainer = document.querySelector('.img-upload__effect-level');
-const sliderElement = document.querySelector('.effect-level__slider');
-const effectValue = document.querySelector('.effect-level__value');
-
 const form = document.querySelector('.img-upload__form');
+
+const uploadInput = form.querySelector('#upload-file');
+const overlay = form.querySelector('.img-upload__overlay');
+const closeButton = form.querySelector('#upload-cancel');
+
+const scaleSmaller = form.querySelector('.scale__control--smaller');
+const scaleBigger = form.querySelector('.scale__control--bigger');
+const scaleValue = form.querySelector('.scale__control--value');
+
+const previewImg = form.querySelector('.img-upload__preview img');
+const effectsList = form.querySelector('.effects__list');
+const sliderContainer = form.querySelector('.img-upload__effect-level');
+const sliderElement = form.querySelector('.effect-level__slider');
+const effectValue = form.querySelector('.effect-level__value');
+
 const hashtagsInput = form.querySelector('.text__hashtags');
 const commentInput = form.querySelector('.text__description');
 
@@ -36,7 +79,7 @@ function onEscKeydown(evt) {
   }
 
   if (
-    evt.key === 'Escape' &&
+    isEscapeKey(evt) &&
     document.activeElement !== hashtagsInput &&
     document.activeElement !== commentInput
   ) {
@@ -97,39 +140,6 @@ function closeForm() {
 }
 
 function initSlider(effect) {
-  const EFFECTS = {
-    chrome: {
-      min: 0,
-      max: 1,
-      step: 0.1,
-      filter: (v) => `grayscale(${v})`
-    },
-    sepia: {
-      min: 0,
-      max: 1,
-      step: 0.1,
-      filter: (v) => `sepia(${v})`
-    },
-    marvin: {
-      min: 0,
-      max: 100,
-      step: 1,
-      filter: (v) => `invert(${v}%)`
-    },
-    phobos: {
-      min: 0,
-      max: 3,
-      step: 0.1,
-      filter: (v) => `blur(${v}px)`
-    },
-    heat: {
-      min: 1,
-      max: 3,
-      step: 0.1,
-      filter: (v) => `brightness(${v})`
-    }
-  };
-
   if (sliderElement.noUiSlider) {
     sliderElement.noUiSlider.destroy();
   }
@@ -146,41 +156,41 @@ function initSlider(effect) {
   sliderContainer.classList.remove('hidden');
   previewImg.className = `effects__preview--${effect}`;
 
-  const cfg = EFFECTS[effect];
+  const effectConfig = EFFECTS[effect];
 
   noUiSlider.create(sliderElement, {
     range: {
-      min: cfg.min,
-      max: cfg.max
+      min: effectConfig.min,
+      max: effectConfig.max
     },
-    start: cfg.max,
-    step: cfg.step,
+    start: effectConfig.max,
+    step: effectConfig.step,
     connect: 'lower'
   });
 
-  effectValue.value = cfg.max;
-  previewImg.style.filter = cfg.filter(cfg.max);
+  effectValue.value = effectConfig.max;
+  previewImg.style.filter = effectConfig.filter(effectConfig.max);
 
   sliderElement.noUiSlider.on('update', (values) => {
     const value = Number(values[0]);
     effectValue.value = value;
-    previewImg.style.filter = cfg.filter(value);
+    previewImg.style.filter = effectConfig.filter(value);
   });
 }
 
 scaleValue.value = '100%';
 
 scaleSmaller.addEventListener('click', () => {
-  if (currentScale > 25) {
-    currentScale -= 25;
+  if (currentScale > MIN_SCALE) {
+    currentScale -= SCALE_STEP;
     scaleValue.value = `${currentScale}%`;
     previewImg.style.transform = `scale(${currentScale / 100})`;
   }
 });
 
 scaleBigger.addEventListener('click', () => {
-  if (currentScale < 100) {
-    currentScale += 25;
+  if (currentScale < MAX_SCALE) {
+    currentScale += SCALE_STEP;
     scaleValue.value = `${currentScale}%`;
     previewImg.style.transform = `scale(${currentScale / 100})`;
   }
@@ -202,9 +212,6 @@ effectsList.addEventListener('change', (evt) => {
     initSlider(evt.target.value);
   }
 });
-
-const MAX_HASHTAGS = 5;
-const HASHTAG_PATTERN = /^#[a-zа-яё0-9]{1,19}$/i;
 
 const getHashtags = (value) =>
   value.trim() ? value.trim().split(/\s+/) : [];
@@ -244,7 +251,7 @@ pristine.addValidator(
 
 pristine.addValidator(
   commentInput,
-  (value) => value.length <= 140,
+  (value) => value.length <= MAX_COMMENT_LENGTH,
   'Комментарий не более 140 символов'
 );
 
